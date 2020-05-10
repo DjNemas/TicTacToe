@@ -1,6 +1,14 @@
-﻿Add-Type -AssemblyName PresentationFramework
-Add-Type -AssemblyName System
+﻿#Hallo Lieber Dozent! Ich entschuldige mich jetzt schon einmal für mein ach so tolles Englisch bei den Kommentaren :D
+#Ich wünsche Ihnen einen schönen Tag und viel spaß mit dem Code, hoffentlich hab ich es übersichtlich genug gehalten. :)
 
+#####################################
+# Programm Developed by Denis Kliem #
+# www.djnemas.de                    #
+#####################################
+
+Add-Type -AssemblyName PresentationFramework
+Add-Type -AssemblyName System
+#region WPF String
 $style = @"
 <Window.Resources>
         <Style TargetType="Button">
@@ -98,75 +106,121 @@ $style = @"
     </Grid>
 </Window>
 "@
+#endregion
 
-$XAML.Window.RemoveAttribute("x:Class")
-#XAML laden
-$Reader = New-Object System.Xml.XmlNodeReader $XAML
-$Form = [Windows.Markup.XamlReader]::Load($Reader)
+#region XAML Reader
+#Try to load XAML
+try{
+    $Reader = New-Object System.Xml.XmlNodeReader $XAML
+    $XAML.Window.RemoveAttribute("x:Class")
+    $Form =[Windows.Markup.XamlReader]::Load($Reader)
+} catch {
+   Write-Host "Windows.Markup.XamlReader konnte nicht geladen werden. Mögliche Ursache: ungültige Syntax oder fehlendes .net"
+}
+#endregion
 
+#region Functions
+#Function to check which player clicked on button
+function PlayerTurnClickLog
+{
+    [CmdLetBinding()]
+		PARAM(
+			[Parameter(Mandatory=$true)][object]$Fld
+		)
 
+if($player_1.Turn -eq $true)
+    {
+        $logtext = $player_1.Name + " Click on Button" + $fld.ButtonNumber
+    }
+    elseif($player_2.Turn -eq $true)
+    {
+        $logtext = $player_2.Name + " Click on Button" + $fld.ButtonNumber
+    }
+    Write-Log $logtext "UserInput"
+}
+#Function for creating logfile and cosole output
+function Write-Log([string]$logtext, [string]$type)
+{
+	$logdate = get-date -format "dd-MM-yyy HH:mm:ss"
+    if($type -eq "Dev")
+	{
+		$logtext = "[Dev] " + $logtext
+		$text = "["+$logdate+"] - " + $logtext
+		Write-Host $text -ForegroundColor Yellow
+	}
+	if($type -eq "UserInput")
+	{
+		$logtext = "[UserInput] " + $logtext
+		$text = "["+$logdate+"] - " + $logtext
+		Write-Host $text -ForegroundColor Green
+	}
+	$text >> $logfile
+}
+#Set Values when Player1 Won
+function Player1WonSetValues
+{
+    $player_1.Score += 1
+    $scorePlayer1.Content = $player_1.Score    
+    $player_1.Turn = $false
+    $player_2.Turn = $true
+    $logtext = "[Set Player Values] " + $player_1.Name + 
+    " Score: " + $player_1.Score +
+    " Turn:" + $player_1.Turn
+    Write-Log $logtext "Dev"
+    return $name = $player_1.Name
+}
+#Set Values when Player2 Won
+function Player2WonSetValues
+{
+    $player_2.Score += 1
+    $scorePlayer2.Content = $player_2.Score    
+    $player_1.Turn = $true
+    $player_2.Turn = $false
+    $logtext = "[Set Player Values] " + $player_2.Name + 
+    " Score: " + $player_2.Score +
+    " Turn:" + $player_2.Turn
+    Write-Log $logtext "Dev"
+    return $name = $player_2.Name
+}
+#Check if a Player won on every possible line, or if no one won
 function CheckIfWon
 {
     #Check FirstRow
     if($fld1.Player_1 -eq $true -and $fld2.Player_1 -eq $true -and $fld3.Player_1 -eq $true)
     {
-    $player_1.Score += 1
-    $scorePlayer1.Content = $player_1.Score
-    $name = $player_1.Name
-    $player_1.Turn = $false
-    $player_2.Turn = $true
+    $name = Player1WonSetValues
     [System.Windows.Forms.MessageBox]::Show("$name Won","$name Won",0)
     InitialGame
     }
     elseif($fld1.Player_2 -eq $true -and $fld2.Player_2 -eq $true -and $fld3.Player_2 -eq $true)
     {
-    $player_2.Score += 1
-    $scorePlayer2.Content = $player_2.Score
-    $name = $player_2.Name
-    $player_1.Turn = $true
-    $player_2.Turn = $false
+    $name = Player2WonSetValues
     [System.Windows.Forms.MessageBox]::Show("$name Won","$name Won",0)
     InitialGame
     }
     #Check SecondRow
     if($fld4.Player_1 -eq $true -and $fld5.Player_1 -eq $true -and $fld6.Player_1 -eq $true)
     {
-    $player_1.Score += 1
-    $scorePlayer1.Content = $player_1.Score
-    $name = $player_1.Name
-    $player_1.Turn = $false
-    $player_2.Turn = $true
+    $name = Player1WonSetValues
     [System.Windows.Forms.MessageBox]::Show("$name Won","$name Won",0)
     InitialGame
     }
     elseif($fld4.Player_2 -eq $true -and $fld5.Player_2 -eq $true -and $fld6.Player_2 -eq $true)
     {
-    $player_2.Score += 1
-    $scorePlayer2.Content = $player_2.Score
-    $name = $player_2.Name
-    $player_1.Turn = $true
-    $player_2.Turn = $false
+    $name = Player2WonSetValues
     [System.Windows.Forms.MessageBox]::Show("$name Won","$name Won",0)
     InitialGame
     }
     #Check ThirdRow
     if($fld7.Player_1 -eq $true -and $fld8.Player_1 -eq $true -and $fld9.Player_1 -eq $true)
     {
-    $player_1.Score += 1
-    $scorePlayer1.Content = $player_1.Score
-    $name = $player_1.Name
-    $player_1.Turn = $false
-    $player_2.Turn = $true
+    $name = Player1WonSetValues
     [System.Windows.Forms.MessageBox]::Show("$name Won","$name Won",0)
     InitialGame
     }
     elseif($fld7.Player_2 -eq $true -and $fld8.Player_2 -eq $true -and $fld9.Player_2 -eq $true)
     {
-    $player_2.Score += 1
-    $scorePlayer2.Content = $player_2.Score
-    $name = $player_2.Name
-    $player_1.Turn = $true
-    $player_2.Turn = $false
+    $name = Player2WonSetValues
     [System.Windows.Forms.MessageBox]::Show("$name Won","$name Won",0)
     InitialGame
     }
@@ -174,63 +228,39 @@ function CheckIfWon
     #Check FirstColumn
     if($fld1.Player_1 -eq $true -and $fld4.Player_1 -eq $true -and $fld7.Player_1 -eq $true)
     {
-    $player_1.Score += 1
-    $scorePlayer1.Content = $player_1.Score
-    $name = $player_1.Name
-    $player_1.Turn = $false
-    $player_2.Turn = $true
+    $name = Player1WonSetValues
     [System.Windows.Forms.MessageBox]::Show("$name Won","$name Won",0)
     InitialGame
     }
     elseif($fld1.Player_2 -eq $true -and $fld4.Player_2 -eq $true -and $fld7.Player_2 -eq $true)
     {
-    $player_2.Score += 1
-    $scorePlayer2.Content = $player_2.Score
-    $name = $player_2.Name
-    $player_1.Turn = $true
-    $player_2.Turn = $false
+    $name = Player2WonSetValues
     [System.Windows.Forms.MessageBox]::Show("$name Won","$name Won",0)
     InitialGame
     }
     #Check SecondColumn
     if($fld2.Player_1 -eq $true -and $fld5.Player_1 -eq $true -and $fld8.Player_1 -eq $true)
     {
-    $player_1.Score += 1
-    $scorePlayer1.Content = $player_1.Score
-    $name = $player_1.Name
-    $player_1.Turn = $false
-    $player_2.Turn = $true
+    $name = Player1WonSetValues
     [System.Windows.Forms.MessageBox]::Show("$name Won","$name Won",0)
     InitialGame
     }
     elseif($fld2.Player_2 -eq $true -and $fld5.Player_2 -eq $true -and $fld8.Player_2 -eq $true)
     {
-    $player_2.Score += 1
-    $scorePlayer2.Content = $player_2.Score
-    $name = $player_2.Name
-    $player_1.Turn = $true
-    $player_2.Turn = $false
+    $name = Player2WonSetValues
     [System.Windows.Forms.MessageBox]::Show("$name Won","$name Won",0)
     InitialGame
     }
     #Check ThirdColumn
     if($fld3.Player_1 -eq $true -and $fld6.Player_1 -eq $true -and $fld9.Player_1 -eq $true)
     {
-    $player_1.Score += 1
-    $scorePlayer1.Content = $player_1.Score
-    $name = $player_1.Name
-    $player_1.Turn = $false
-    $player_2.Turn = $true
+    $name = Player1WonSetValues
     [System.Windows.Forms.MessageBox]::Show("$name Won","$name Won",0)
     InitialGame
     }
     elseif($fld3.Player_2 -eq $true -and $fld6.Player_2 -eq $true -and $fld9.Player_2 -eq $true)
     {
-    $player_2.Score += 1
-    $scorePlayer2.Content = $player_2.Score
-    $name = $player_2.Name
-    $player_1.Turn = $true
-    $player_2.Turn = $false
+    $name = Player2WonSetValues
     [System.Windows.Forms.MessageBox]::Show("$name Won","$name Won",0)
     InitialGame
     }
@@ -238,42 +268,26 @@ function CheckIfWon
     #Check FirstDiagonal
     if($fld1.Player_1 -eq $true -and $fld5.Player_1 -eq $true -and $fld9.Player_1 -eq $true)
     {
-    $player_1.Score += 1
-    $scorePlayer1.Content = $player_1.Score
-    $name = $player_1.Name
-    $player_1.Turn = $false
-    $player_2.Turn = $true
+    $name = Player1WonSetValues
     [System.Windows.Forms.MessageBox]::Show("$name Won","$name Won",0)
     InitialGame
     }
     elseif($fld1.Player_2 -eq $true -and $fld5.Player_2 -eq $true -and $fld9.Player_2 -eq $true)
     {
-    $player_2.Score += 1
-    $scorePlayer2.Content = $player_2.Score
-    $name = $player_2.Name
-    $player_1.Turn = $true
-    $player_2.Turn = $false
+    $name = Player2WonSetValues
     [System.Windows.Forms.MessageBox]::Show("$name Won","$name Won",0)
     InitialGame
     }
     #Check SecondDiagonal
     if($fld3.Player_1 -eq $true -and $fld5.Player_1 -eq $true -and $fld7.Player_1 -eq $true)
     {
-    $player_1.Score += 1
-    $scorePlayer1.Content = $player_1.Score
-    $name = $player_1.Name
-    $player_1.Turn = $false
-    $player_2.Turn = $true
+    $name = Player1WonSetValues
     [System.Windows.Forms.MessageBox]::Show("$name Won","$name Won",0)
     InitialGame
     }
     elseif($fld3.Player_2 -eq $true -and $fld5.Player_2 -eq $true -and $fld7.Player_2 -eq $true)
     {
-    $player_2.Score += 1
-    $scorePlayer2.Content = $player_2.Score
-    $name = $player_2.Name
-    $player_1.Turn = $true
-    $player_2.Turn = $false
+    $name = Player2WonSetValues
     [System.Windows.Forms.MessageBox]::Show("$name Won","$name Won",0)
     InitialGame
     }
@@ -295,37 +309,46 @@ function CheckIfWon
     }
     
 }
-
+#When player click on button change values
 function CheckPlayerClick (){
 
         [CmdLetBinding()]
 		PARAM(
-			[Parameter(Mandatory=$true)][object]$Fld, 
-			[Parameter(Mandatory=$true)][object]$Fldimg
+			[Parameter(Mandatory=$true)][object]$Fld
 		)
 if ($player_1.Turn -eq $true -and $Fld.Empty -eq $true)
     {
         $Fld.Empty = $false
-        $Fldimg.Source = $button_x
+        $Fld.Image.Source = $button_x
         $Fld.Player_1 = $true
         $player_1.Turn = $false
         $player_2.Turn = $true        
         $curPlayer.Content = $player_2.Name
         $Fld.Button.IsEnabled = $false
+        $logtext = "[Button Value Changes] Button" + $Fld.ButtonNumber +
+        " Empty: " + $Fld.Empty +
+        " Set Image: " + $Fld.Image.Source +
+        " IsEnabled: " + $Fld.Button.IsEnabled
+        Write-Log $logtext "Dev"
     }
 elseif($player_2.Turn -eq $true -and $Fld.Empty -eq $true)
 {
         $Fld.Empty = $false
-        $Fldimg.Source = $button_o
+        $Fld.Image.Source = $button_o
         $Fld.Player_2 = $true
         $player_1.Turn = $true
         $player_2.Turn = $false        
         $curPlayer.Content = $player_1.Name
         $Fld.Button.IsEnabled = $false
+        $logtext = "[Button Value Changes] Button" + $Fld.ButtonNumber +
+        " Empty: " + $Fld.Empty +
+        " Set Image: " + $Fld.Image.Source +
+        " IsEnabled: " + $Fld.Button.IsEnabled
+        Write-Log $logtext "Dev"
 }
 
 }
-
+#Reset the Buttons/Player Values
 function InitialGame
 {
 foreach($item in $fld)
@@ -334,23 +357,28 @@ foreach($item in $fld)
     $item.Button.IsEnabled = $true
     $item.Player_1 = $false
     $item.Player_2 = $false
+    $item.Image.Source = $button_transparent
+    $logtext = "[Initial Buttons] " + "Button" + $item.ButtonNumber + 
+    " Image: " + $item.Image.Source +
+    " Empty:" + $item.Empty +
+    " IsEnabled:" + $item.Button.IsEnabled +
+    " Player1:" + $item.Player_1 +
+    " Player2:" + $item.Player_1
+    Write-Log $logtext "Dev"
 }
-foreach($item in $fldimg)
-{
-    $item.Source = $button_transparent
 }
-$curPlayer.Content = $player_1.Name
-}
+#endregion
 
-
-#class bzw struktur
-
+#region Classes
+#class or rather structur
 class Button
 {    
     [ValidateNotNullOrEmpty()][object]$Button
+    [object]$Image
     [bool]$Empty
     [bool]$Player_1
     [bool]$Player_2
+    [ValidateNotNullOrEmpty()][int]$ButtonNumber
 
     Button() {
        $this.Empty = $true
@@ -370,27 +398,50 @@ class Player
     $this.Score = 0
     }
 }
+#endregion
 
-#Variables
+#region Logfile Variable
+$logtext = ""
+$path = "$PSScriptRoot\log"
+$date = get-date -format "dd-MM-yyyy-HH-mm-ss"
+$file = ("log-" + $date + ".log")
+$logfile = $path + "\" + $file
+#Create Folder Path if not exist
+$checkFolder = Test-Path -PathType Container -Path $path
+if ($checkFolder -eq $false)
+{
+    New-Item -ItemType Directory -Force -Path $path
+
+    $logtext = "Folder for file path: " + $path + " created"
+    Write-Log $logtext "Dev"
+}else
+{
+    $logtext = "Path: " + $path + " allready exist."
+    Write-Log $logtext "Dev"
+}
+#endregion
+
+#region Variables
+
 #Images
 $button_transparent = "$PSScriptRoot/images/button_transparent.png"
 $button_x = "$PSScriptRoot/images/button_x.png"
 $button_o = "$PSScriptRoot/images/button_o.png"
-#Player
+#Player obj Initialisation
 $player_1 = [Player]@{Name = "Player 1"}
 $player_2 = [Player]@{Name = "Player 2"}
 
-#Button for obj Initialisation
-$fld1 = [Button]@{Button = $Form.FindName('fld1')}
-$fld2 = [Button]@{Button = $Form.FindName('fld2')}
-$fld3 = [Button]@{Button = $Form.FindName('fld3')}
-$fld4 = [Button]@{Button = $Form.FindName('fld4')}
-$fld5 = [Button]@{Button = $Form.FindName('fld5')}
-$fld6 = [Button]@{Button = $Form.FindName('fld6')}
-$fld7 = [Button]@{Button = $Form.FindName('fld7')}
-$fld8 = [Button]@{Button = $Form.FindName('fld8')}
-$fld9 = [Button]@{Button = $Form.FindName('fld9')}
-
+#Button obj Initialisation
+$fld1 = [Button]@{Button = $Form.FindName('fld1'); Image = $Form.FindName('fld1_img'); ButtonNumber = 1}
+$fld2 = [Button]@{Button = $Form.FindName('fld2'); Image = $Form.FindName('fld2_img'); ButtonNumber = 2}
+$fld3 = [Button]@{Button = $Form.FindName('fld3'); Image = $Form.FindName('fld3_img'); ButtonNumber = 3}
+$fld4 = [Button]@{Button = $Form.FindName('fld4'); Image = $Form.FindName('fld4_img'); ButtonNumber = 4}
+$fld5 = [Button]@{Button = $Form.FindName('fld5'); Image = $Form.FindName('fld5_img'); ButtonNumber = 5}
+$fld6 = [Button]@{Button = $Form.FindName('fld6'); Image = $Form.FindName('fld6_img'); ButtonNumber = 6}
+$fld7 = [Button]@{Button = $Form.FindName('fld7'); Image = $Form.FindName('fld7_img'); ButtonNumber = 7}
+$fld8 = [Button]@{Button = $Form.FindName('fld8'); Image = $Form.FindName('fld8_img'); ButtonNumber = 8}
+$fld9 = [Button]@{Button = $Form.FindName('fld9'); Image = $Form.FindName('fld9_img'); ButtonNumber = 9}
+#Array of Buttons for foreach
 $fld = @($fld1, $fld2, $fld3, $fld4, $fld5, $fld6, $fld7, $fld8, $fld9)
 
 #Header Initialisation
@@ -399,79 +450,80 @@ $scorePlayer1 = $Form.FindName('ScorePlayer1')
 $scorePlayer2 = $Form.FindName('ScorePlayer2')
 $scorePlayer1.Content = $player_1.Score
 $scorePlayer2.Content = $player_2.Score
+#endregion
 
-#Button_Image Array obj Initialisation
-$fld1img = $Form.FindName('fld1_img')
-$fld2img = $Form.FindName('fld2_img')
-$fld3img = $Form.FindName('fld3_img')
-$fld4img = $Form.FindName('fld4_img')
-$fld5img = $Form.FindName('fld5_img')
-$fld6img = $Form.FindName('fld6_img')
-$fld7img = $Form.FindName('fld7_img')
-$fld8img = $Form.FindName('fld8_img')
-$fld9img = $Form.FindName('fld9_img')
-
-$fldimg = @($fld1img, $fld2img, $fld3img, $fld4img, $fld5img, $fld6img, $fld7img, $fld8img, $fld9img)
-
+#region Initial Game
 #Set player 1 as first player
 $player_1.Turn = $true
+$curPlayer.Content = $player_1.Name
 #Initial game values
 InitialGame
+#endregion
 
-#Event functions
+#region Events for every button
 $fld1_Click = 
 {
-    CheckPlayerClick -Fld $fld1 -Fldimg $fld1img
+    PlayerTurnClickLog -Fld $fld1
+    CheckPlayerClick -Fld $fld1
     CheckIfWon
 }
 
 $fld2_Click = 
 {
-    CheckPlayerClick -Fld $fld2 -Fldimg $fld2img
+    PlayerTurnClickLog -Fld $fld2
+    CheckPlayerClick -Fld $fld2
     CheckIfWon
 }
 
 $fld3_Click = 
 {
-    CheckPlayerClick -Fld $fld3 -Fldimg $fld3img
+    PlayerTurnClickLog -Fld $fld3
+    CheckPlayerClick -Fld $fld3
     CheckIfWon
 }
 
 $fld4_Click = 
 {
-    CheckPlayerClick -Fld $fld4 -Fldimg $fld4img
+    PlayerTurnClickLog -Fld $fld4
+    CheckPlayerClick -Fld $fld4
     CheckIfWon
 }
 
 $fld5_Click = 
 {
-    CheckPlayerClick -Fld $fld5 -Fldimg $fld5img
+    PlayerTurnClickLog -Fld $fld5
+    CheckPlayerClick -Fld $fld5
     CheckIfWon
 }
 
 $fld6_Click = 
 {
-    CheckPlayerClick -Fld $fld6 -Fldimg $fld6img
+    PlayerTurnClickLog -Fld $fld6
+    CheckPlayerClick -Fld $fld6
     CheckIfWon
 }
 
 $fld7_Click = 
 {
-    CheckPlayerClick -Fld $fld7 -Fldimg $fld7img
+    PlayerTurnClickLog -Fld $fld7
+    CheckPlayerClick -Fld $fld7
     CheckIfWon
 }
 
 $fld8_Click = 
 {
-    CheckPlayerClick -Fld $fld8 -Fldimg $fld8img
+    PlayerTurnClickLog -Fld $fld8
+    CheckPlayerClick -Fld $fld8
     CheckIfWon
 }
 
 $fld9_Click = 
 {
-    CheckPlayerClick -Fld $fld9 -Fldimg $fld9img
+    PlayerTurnClickLog -Fld $fld9
+    CheckPlayerClick -Fld $fld9
     CheckIfWon
 }
+
 
 #Events for Buttons
 $fld1.Button.Add_Click($fld1_Click)
@@ -483,6 +535,6 @@ $fld6.Button.Add_Click($fld6_Click)
 $fld7.Button.Add_Click($fld7_Click)
 $fld8.Button.Add_Click($fld8_Click)
 $fld9.Button.Add_Click($fld9_Click)
-
+#endregion
 
 $Form.ShowDialog() | Out-Null

@@ -1,7 +1,4 @@
-﻿#Hallo Lieber Dozent! Ich entschuldige mich jetzt schon einmal für mein ach so tolles Englisch bei den Kommentaren :D
-#Ich wünsche Ihnen einen schönen Tag und viel spaß mit dem Code, hoffentlich hab ich es übersichtlich genug gehalten. :)
-
-#####################################
+﻿#####################################
 # Programm Developed by Denis Kliem #
 # www.djnemas.de                    #
 #####################################
